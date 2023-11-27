@@ -1,9 +1,7 @@
 package com.example.jwtvelog.config;
 
 import com.example.jwtvelog.auth.jwt.JwtAuthorizationFilter;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -15,9 +13,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
@@ -57,14 +52,13 @@ public class SecurityConfig {
                                                    JwtAuthorizationFilter jwtAuthorizationFilter)
             throws Exception {
 
+        httpSecurity.cors(config -> config.disable());
+
         // api 서버로 사용하기 때문에 csrf 해제 (jwt로 대체)
         httpSecurity.csrf(config -> config.disable());
 
         // 로그인 인증창이 뜨지 않게 비활성화
         httpSecurity.httpBasic(config -> config.disable());
-
-        // form 로그인 해제
-        httpSecurity.formLogin(config -> config.disable());
 
         // jSessionId 사용 거부
         httpSecurity.sessionManagement(config -> config
@@ -88,6 +82,9 @@ public class SecurityConfig {
             // h2 관련 옵션
             httpSecurity.headers(config -> config.frameOptions(frameOptionsConfig -> frameOptionsConfig.sameOrigin()));
         }
+
+        // form 로그인 해제
+        httpSecurity.formLogin(config -> config.disable());
 
         return httpSecurity.getOrBuild();
     }

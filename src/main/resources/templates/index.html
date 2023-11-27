@@ -16,48 +16,43 @@
             headers: {
                 "Content-Type": "application/json",
                 // 쿠키에 저장된 토큰을 헤더에 포함시켜 보냄
-                "Authorization": getCookie("ACCESS-TOKEN")
+                "Authorization": "Bearer " + getCookie("ACCESS-TOKEN")
             }
         }).then(response => {
-            console.log("temp response");
-            console.log(response);
+            // response의 status가 401(JwtProvider의 verify가 실패)일 경우
+            // 다른 경우일 수도 있다.
             if(response.status === 401) {
+                // 재발급 요청에 필요한 데이터를 담은 DTO
                 reloginDTO = {
                     refreshToken: getCookie("REFRESH-TOKEN")
                 }
-                // 토큰이 만료되었을 경우 재발급 요청
+                // 재발급 요청
                 fetch("/api/v1/auth/relogin",{
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": getCookie("REFRESH-TOKEN")
                     },
                     body: JSON.stringify(reloginDTO)
                 }).then(response => {
-                    console.log("relogin response");
-                    console.log(response);
-                    // 재발급 요청 실패 시 (리프레시 토큰이 만료되었을 경우)
+                    // 재발급 요청 실패 시 (리프레시 토큰도 만료되었을 경우)
                     if(response.status === 401) {
                         // 사용자를 로그인 페이지로 이동시킨다.
                         alert("로그인이 필요합니다.");
-                        // location.href = "/auth/login";
+                        location.href = "/auth/login";
                         return;
                     }
                     // 재발급 요청 성공 시 파싱하여 return
                     return response.json();
-                }).then((result) => {
-                    console.log("relogin result");
-                    console.log(result);
-                    // 재발급 요청 실패 시 에러 메시지 출력
+                }).then(result => {
+                    // 토큰 만료 이외의 이유로 재발급 요청 실패 시 에러 메시지 출력
                     if(result.code !== 0) {
-                        console.log("재발급 실패");
-                        console.log(result);
                         alert(result.message);
                         return;
                     }
                     // 토큰 재발급 성공 시 쿠키에 저장
-                    document.cookie = `ACCESS-TOKEN=${result.data.accessToken}; path=/`;
-                    document.cookie = `REFRESH-TOKEN=${result.data.refreshToken}; path=/`;
+                    console.log(result);
+                    document.cookie = `ACCESS-TOKEN=${result.data.accessToken}`;
+                    document.cookie = `REFRESH-TOKEN=${result.data.refreshToken}`;
                 })
             }
             return response.json()
@@ -66,7 +61,6 @@
                     // result.code가 0이 아닐 시 에러 메시지 출력
                     if (result.code !== 0) {
                         console.log(result);
-                        alert(result.message);
                         return;
                     }
 

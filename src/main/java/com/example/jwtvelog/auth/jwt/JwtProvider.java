@@ -13,9 +13,9 @@ import java.util.Date;
 public class JwtProvider {
 
     // 엑세스 토큰 유효기간 1일 설정
-    private static final int EXP_ACCESS = 1000 * 10;
+    private static final int EXP_ACCESS = 1000 * 60 * 60 * 24;
     // 리프레시 토큰 유효기간 7일 설정
-    private static final int EXP_REFRESH = 1000 * 60;
+    private static final int EXP_REFRESH = 1000 * 60 * 60 * 24 * 7;
     // 토큰 prefix 설정
     public static final String TOKEN_PREFIX = "Bearer ";
     // 토큰이 담길 헤더
@@ -40,10 +40,13 @@ public class JwtProvider {
     }
 
     public String createToken(Long idx, String role, JwtTokenType tokenType) {
+        // 입력된 토큰 타입에 따라 유효기간 설정
+        int exp = tokenType.compareTo(JwtTokenType.ACCESS_TOKEN) == 0 ? EXP_ACCESS : EXP_REFRESH;
+
         return JWT.create()
                 // 고유값
                 .withSubject(idx.toString())
-                .withExpiresAt(new Date(System.currentTimeMillis() + EXP_ACCESS))
+                .withExpiresAt(new Date(System.currentTimeMillis() + exp))
                 .withClaim("role", role)
                 // name을 따로 빼는 게 좋긴 함
                 .withClaim("token-type", tokenType.name())
